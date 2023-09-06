@@ -6,10 +6,12 @@ from django.contrib.auth.decorators import login_required
 from .models import Profile
 
 # Create your views here.
-#@login_required(login_url='signin')
-
+@login_required(login_url='signin')
 def index(request):
     return render(request, 'index.html')
+
+def settings(request):
+    return render(request, 'setting.html')
 
 def signup(request):
     if request.method == 'POST':
@@ -29,12 +31,14 @@ def signup(request):
                 user.save()
 
                 #Log user in and redirect to settings page
+                user_login = auth.authenticate(username=username, password=password)
+                auth.login(request, user_login)
 
                 #Create profile object for new user
                 user_model = User.object.get(username=username)
                 new_profile = Profile.objects.create(user=user_model, id_user=user_model.id)
                 new_proile.save()
-                return redirect('signup')
+                return redirect('settings')
         else:
             messages.info(request, 'Passwords do not match.')
             return redirect('signup')
@@ -56,6 +60,7 @@ def signin(request):
     else:
         return render(request, 'signin.html')
 
+@login_required(login_url='signin')
 def logout(request):
     auth.logout(request)
     return redirect('signin')
